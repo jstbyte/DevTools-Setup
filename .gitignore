@@ -1,0 +1,9 @@
+# Ignore everything inside DevTools
+DevTools/*
+
+# Allow the specific dev.bat file
+!DevTools/dev.bat
+
+# Other Build Artifects
+DevTools.7z
+DevTools.exe

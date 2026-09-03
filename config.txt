@@ -1,0 +1,7 @@
+;!@Install@!UTF-8!
+Title="DevTools Setup"
+InstallPath="C:\\"
+OverwriteMode="2"
+ExecuteFile="powershell.exe"
+ExecuteParameters="-NoProfile -WindowStyle Hidden -Command \"$p = [Environment]::GetEnvironmentVariable('Path', 'User'); if ($p -split ';' -notcontains 'C:\\DevTools') { [Environment]::SetEnvironmentVariable('Path', ($p + ';C:\\DevTools').Trim(';'), 'User') }\""
+;!@InstallEnd@!
