@@ -1,0 +1,75 @@
+@echo off
+setlocal enabledelayedexpansion
+
+:: ==============================================================================
+:: HARDCODED CONFIGURATION
+:: ==============================================================================
+:: Fixed: Added your username and repository name here so Git knows where the contents are!
+set "REPO_URL=https://github.com/jstbyte/AwesomeProjects"
+
+:: ==============================================================================
+:: PARAMETER CHECK
+:: ==============================================================================
+if "%~1"=="" goto usage
+
+:: Store the user's requested subfolder path into a variable
+set "FOLDER_PATH=%~1"
+
+:: Extract the last folder name from the path to use as the local target directory name
+for %%F in ("%FOLDER_PATH:/=\%") do set "FOLDER_NAME=%%~nxF"
+
+:: ==============================================================================
+:: STEP 1: INITIALIZE LOCAL REPOSITORY
+:: ==============================================================================
+echo [1/5] Initializing temporary repository...
+git init -q "%FOLDER_NAME%"
+cd "%FOLDER_NAME%"
+
+:: ==============================================================================
+:: STEP 2: CONNECT TO REMOTE
+:: ==============================================================================
+echo [2/5] Connecting to jstbyte/AwesomeProjects...
+git remote add origin "%REPO_URL%"
+
+:: ==============================================================================
+:: STEP 3: CONFIGURE SPARSE CHECKOUT
+:: ==============================================================================
+echo [3/5] Configuring sparse checkout for: %FOLDER_PATH%
+git sparse-checkout init --cone
+git sparse-checkout set "%FOLDER_PATH%"
+
+:: ==============================================================================
+:: STEP 4: DOWNLOAD FILES
+:: ==============================================================================
+echo [4/5] Pulling folder contents...
+git pull origin main --quiet 2>nul
+if errorlevel 1 (
+    git pull origin master --quiet
+)
+
+:: ==============================================================================
+:: STEP 5: CLEAN UP AND FLATTEN DIRECTORY
+:: ==============================================================================
+echo [5/5] Cleaning up Git metadata...
+rd /s /q .git
+
+if exist "%FOLDER_PATH%" (
+    xcopy "%FOLDER_PATH%" . /E /Y /Q >nul
+    for /f "tokens=1 delims=/" %%A in ("%FOLDER_PATH%") do set "TOP_DIR=%%A"
+    if exist "!TOP_DIR!" rd /s /q "!TOP_DIR!"
+)
+
+echo.
+echo Success! Folder downloaded to: %cd%
+goto :eof
+
+:: ==============================================================================
+:: ERROR / USAGE HANDLING
+:: ==============================================================================
+:usage
+echo Error: Missing folder path.
+echo.
+echo Usage:   download_folder.bat [FOLDER_PATH]
+echo Example: download_folder.bat src/components/button
+echo.
+pause
